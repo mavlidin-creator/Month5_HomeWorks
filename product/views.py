@@ -4,6 +4,7 @@ from rest_framework import status
 from .models import Category, Product, Review
 from .serializers import CategorySerializer, ProductSerializer, ReviewSerializer
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 
 @api_view(['GET'])
 def category_list_view(request):
@@ -39,4 +40,10 @@ def review_list_view(request):
 def review_detail_view(request, id):
     review = get_object_or_404(Review, id=id)
     serializer = ReviewSerializer(review)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def product_reviews_list_view(request):
+    products = Product.objects.all()
+    serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)

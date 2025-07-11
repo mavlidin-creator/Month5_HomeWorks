@@ -16,9 +16,17 @@ class Product(models.Model):
         return self.title
 
 class Review(models.Model):
+    # Добавляем поле stars
+    STARS_CHOICES = (
+        (1, '⭐'),
+        (2, '⭐⭐'),
+        (3, '⭐⭐⭐'),
+        (4, '⭐⭐⭐⭐'),
+        (5, '⭐⭐⭐⭐⭐'),
+    )
     text = models.TextField()
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    stars = models.IntegerField(choices=STARS_CHOICES, default=5) # Добавлено поле stars
 
     def __str__(self):
-        return f"Review for {self.product.title}"
-
+        return f"Review for {self.product.title} - {self.stars} stars"
