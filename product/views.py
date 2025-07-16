@@ -6,7 +6,7 @@ from .serializers import CategorySerializer, ProductSerializer, ReviewSerializer
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 
-@api_view(['GET', 'POST']) # Добавили POST
+@api_view(['GET', 'POST']) 
 def category_list_view(request):
     if request.method == 'GET':
         categories = Category.objects.all()
@@ -19,7 +19,7 @@ def category_list_view(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'PUT', 'DELETE']) # Добавили PUT и DELETE
+@api_view(['GET', 'PUT', 'DELETE']) 
 def category_detail_view(request, id):
     category = get_object_or_404(Category, id=id)
     if request.method == 'GET':
@@ -35,7 +35,7 @@ def category_detail_view(request, id):
         category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['GET', 'POST']) # Добавили POST
+@api_view(['GET', 'POST']) 
 def product_list_view(request):
     if request.method == 'GET':
         products = Product.objects.all()
@@ -48,7 +48,7 @@ def product_list_view(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'PUT', 'DELETE']) # Добавили PUT и DELETE
+@api_view(['GET', 'PUT', 'DELETE']) 
 def product_detail_view(request, id):
     product = get_object_or_404(Product, id=id)
     if request.method == 'GET':
@@ -64,7 +64,7 @@ def product_detail_view(request, id):
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['GET', 'POST']) # Добавили POST
+@api_view(['GET', 'POST']) 
 def review_list_view(request):
     if request.method == 'GET':
         reviews = Review.objects.all()
@@ -77,7 +77,7 @@ def review_list_view(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'PUT', 'DELETE']) # Добавили PUT и DELETE
+@api_view(['GET', 'PUT', 'DELETE']) 
 def review_detail_view(request, id):
     review = get_object_or_404(Review, id=id)
     if request.method == 'GET':
@@ -93,7 +93,6 @@ def review_detail_view(request, id):
         review.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-# Эта функция остаётся без изменений, так как она только для GET
 @api_view(['GET'])
 def product_reviews_list_view(request):
     products = Product.objects.all()
