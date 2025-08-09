@@ -30,7 +30,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = 'all'
+        fields = '__all__'  # вместо 'all'
 
     def validate_stars(self, value):
         if value < 1 or value > 5:
@@ -41,6 +41,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         if len(value.strip()) < 10:
             raise serializers.ValidationError("Текст отзыва должен быть не короче 10 символов.")
         return value
+
 
 
 class ProductSerializer(serializers.ModelSerializer):

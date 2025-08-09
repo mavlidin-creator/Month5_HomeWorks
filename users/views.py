@@ -3,9 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from .serializers import RegisterSerializer, ConfirmSerializer, LoginSerializer
-from django.contrib.auth import get_user_model
 
-User = get_user_model()
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -17,6 +15,7 @@ class RegisterView(APIView):
             return Response({'message': 'Регистрация успешна. Проверьте email и подтвердите кодом.'}, status=201)
         return Response(serializer.errors, status=400)
 
+
 class ConfirmView(APIView):
     permission_classes = [AllowAny]
 
@@ -25,6 +24,7 @@ class ConfirmView(APIView):
         if serializer.is_valid():
             return Response({'message': 'Пользователь подтверждён. Теперь можно войти.'})
         return Response(serializer.errors, status=400)
+
 
 class LoginView(APIView):
     permission_classes = [AllowAny]

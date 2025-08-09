@@ -2,19 +2,20 @@ from rest_framework import serializers
 from .models import CustomUser
 from django.contrib.auth import authenticate
 from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password']
+        fields = ['email', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
-            username=validated_data['username'],
             email=validated_data['email'],
-            password=validated_data['password'],
-            is_active=False
+            password=validated_data['password']
         )
         user.generate_confirmation_code()
 
@@ -43,12 +44,22 @@ class ConfirmSerializer(serializers.Serializer):
         return data
 
 
+User = get_user_model()
+
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = authenticate(**data)
-        if user and user.is_active:
-            return user
-        raise serializers.ValidationError("Неверные данные или пользователь не подтверждён.")
+        try:
+            user = User.objects.get(email=data['email'])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Неверные данные или пользователь не подтверждён.")
+        
+        if not check_password(data['password'], user.password):
+            raise serializers.ValidationError("Неверные данные или пользователь не подтверждён.")
+
+        if not user.is_active:
+            raise serializers.ValidationError("Пользователь не подтверждён.")
+
+        return user

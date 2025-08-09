@@ -6,4 +6,3 @@ urlpatterns = [
     path('confirm/', ConfirmView.as_view()),
     path('login/', LoginView.as_view()),
 ]
-
