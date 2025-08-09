@@ -37,6 +37,17 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
+SWAGGER_SETTINGS = {
+     'SECURITY_DEFINITIONS':{ 
+        'Token': { 
+            'type': 'apikey',
+            'name': 'Auhtorization', 
+            'in': 'header', 
+            'description': 'Token jasfgiusyo7t47tgthgdH'
+        }
+    }
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
