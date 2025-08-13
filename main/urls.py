@@ -19,7 +19,8 @@ urlpatterns = [
     path('api/v1/', include('product.urls')),
     path('api/v1/users/', include('users.urls')),
 
-    # Swagger и Redoc
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path("api/v1/auth/", include("users.urls")),
 ]
+

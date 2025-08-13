@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from .serializers import RegisterSerializer, ConfirmSerializer, LoginSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
 
 
 class RegisterView(APIView):
@@ -36,3 +38,7 @@ class LoginView(APIView):
             token, _ = Token.objects.get_or_create(user=user)
             return Response({'token': token.key})
         return Response(serializer.errors, status=400)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

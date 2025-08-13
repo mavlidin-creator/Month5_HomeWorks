@@ -5,6 +5,7 @@ from .models import Category, Product, Review
 from .serializers import CategorySerializer, ProductSerializer, ReviewSerializer
 from common.permissions import IsModerator
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from common.validators import validate_user_is_adult
 
 class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
@@ -20,6 +21,10 @@ class ProductListCreateView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticatedOrReadOnly | IsModerator]
 
+    def perform_create(self, serializer):
+        validate_user_is_adult(self.request.user)
+        serializer.save()
+    
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer

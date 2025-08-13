@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -63,3 +64,11 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Пользователь не подтверждён.")
 
         return user
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token["birthday"] = str(user.birthday) if user.birthday else None
+        return token
