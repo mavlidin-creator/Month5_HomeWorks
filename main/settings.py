@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -34,15 +35,27 @@ INSTALLED_APPS = [
     'product',
     'drf_yasg',
     'rest_framework_simplejwt',
+    "oauth2_provider",
 ]
 
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
 }
 
+
 AUTH_USER_MODEL = 'users.CustomUser'
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
 
 SWAGGER_SETTINGS = {
      'SECURITY_DEFINITIONS':{ 
@@ -130,6 +143,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+GOOGLE_CLIENT_ID = "ВАШ_CLIENT_ID"
+GOOGLE_CLIENT_SECRET = "ВАШ_CLIENT_SECRET"
+GOOGLE_REDIRECT_URI = "http://localhost:8000/api/v1/users/google/callback/"
+
+
+OAUTH2_PROVIDER = {
+    "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
+    "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -156,3 +178,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "PASTE_ME")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "PASTE_ME")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/google/callback")
