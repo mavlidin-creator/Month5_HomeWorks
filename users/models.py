@@ -29,7 +29,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     confirmation_code = models.CharField(max_length=6, blank=True, null=True)
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
-    birthday = models.DateField(null=True, blank=True)
+    birthday = models.DateField(null=True, blank=True, verbose_name="Дата рождения")
 
     objects = CustomUserManager()
 
@@ -42,3 +42,4 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+

@@ -70,5 +70,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        token["birthday"] = str(user.birthday) if user.birthday else None
+        token['birthday'] = None
+        if user.birthday:
+            token['birthday'] = user.birthday.strftime("%Y-%m-%d")
+
         return token
+
+
