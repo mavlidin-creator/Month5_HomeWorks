@@ -1,13 +1,16 @@
 from pathlib import Path
 import os
 from datetime import timedelta
+from decouple import config
 from dotenv import load_dotenv
 load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-
+GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = config("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = config("GOOGLE_REDIRECT_URI")
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -143,10 +146,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-GOOGLE_CLIENT_ID = "ВАШ_CLIENT_ID"
-GOOGLE_CLIENT_SECRET = "ВАШ_CLIENT_SECRET"
-GOOGLE_REDIRECT_URI = "http://localhost:8000/api/v1/users/google/callback/"
-
 
 OAUTH2_PROVIDER = {
     "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
@@ -179,6 +178,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
 
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "PASTE_ME")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "PASTE_ME")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/google/callback")
+
+REDIS_HOST = config("REDIS_HOST", "localhost")
+REDIS_PORT = config("REDIS_PORT", 6379, cast=int)
+REDIS_DB = config("REDIS_DB", 0, cast=int)

@@ -1,19 +1,24 @@
+import random
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import get_user_model
 from django.utils import timezone
-from oauth2_provider.models import Application, AccessToken, RefreshToken as OAuthRefreshToken
 from datetime import timedelta
+from oauth2_provider.models import Application, AccessToken, RefreshToken as OAuthRefreshToken
 
-from .serializers import RegisterSerializer, ConfirmSerializer, LoginSerializer, CustomTokenObtainPairSerializer
+from .serializers import RegisterSerializer, ConfirmSerializer, LoginSerializer
+from .redis_client import redis_instance
 from .OAuth import get_google_user_info_by_code
 
 User = get_user_model()
 
+def generate_code(length=6):
+    return "".join([str(random.randint(0, 9)) for _ in range(length)])
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -21,10 +26,12 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'Регистрация успешна. Проверьте email и подтвердите кодом.'}, status=201)
+            user = serializer.save()
+            code = generate_code()
+            redis_instance.setex(f"confirm:{user.email}", 300, code)
+            print(f"Confirmation code for {user.email}: {code}")  # Для теста, отправку email можно подключить
+            return Response({"message": "Регистрация успешна. Проверьте email и подтвердите код."}, status=201)
         return Response(serializer.errors, status=400)
-
 
 class ConfirmView(APIView):
     permission_classes = [AllowAny]
@@ -32,9 +39,19 @@ class ConfirmView(APIView):
     def post(self, request):
         serializer = ConfirmSerializer(data=request.data)
         if serializer.is_valid():
-            return Response({'message': 'Пользователь подтверждён. Теперь можно войти.'})
+            email = serializer.validated_data.get("email")
+            code = serializer.validated_data.get("code")
+            stored_code = redis_instance.get(f"confirm:{email}")
+            if not stored_code:
+                return Response({"error": "Код истёк или не найден"}, status=400)
+            if stored_code != code:
+                return Response({"error": "Неверный код"}, status=400)
+            redis_instance.delete(f"confirm:{email}")
+            user = User.objects.get(email=email)
+            user.is_active = True
+            user.save()
+            return Response({"message": "Пользователь подтверждён. Теперь можно войти."})
         return Response(serializer.errors, status=400)
-
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -42,15 +59,22 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data
+            email = serializer.validated_data["email"]
+            password = serializer.validated_data["password"]
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return Response({"error": "Неверные данные или пользователь не подтверждён"}, status=400)
+            if not check_password(password, user.password):
+                return Response({"error": "Неверные данные или пользователь не подтверждён"}, status=400)
+            if not user.is_active:
+                return Response({"error": "Пользователь не подтверждён"}, status=400)
             token, _ = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key})
+            return Response({"token": token.key})
         return Response(serializer.errors, status=400)
 
-
 class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
-
+    pass  # можно использовать свой serializer если нужно
 
 class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
@@ -58,7 +82,6 @@ class GoogleLoginView(APIView):
     def post(self, request):
         code = request.data.get("code")
         user_info = get_google_user_info_by_code(code)
-
         user, _ = User.objects.get_or_create(
             email=user_info["email"],
             defaults={
@@ -67,8 +90,6 @@ class GoogleLoginView(APIView):
                 "last_name": user_info.get("last_name", "")
             }
         )
-
-        # OAuth2 токены через django-oauth-toolkit
         application = Application.objects.get(name="your_app")
         expires = timezone.now() + timedelta(seconds=3600)
         access_token = AccessToken.objects.create(
@@ -84,7 +105,6 @@ class GoogleLoginView(APIView):
             application=application,
             access_token=access_token
         )
-
         return Response({
             "access_token": access_token.token,
             "refresh_token": refresh_token.token,
@@ -93,6 +113,6 @@ class GoogleLoginView(APIView):
             "user": {
                 "email": user.email,
                 "first_name": user.first_name,
-                "last_name": user.last_name,
+                "last_name": user.last_name
             }
         })
