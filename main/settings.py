@@ -3,6 +3,7 @@ import os
 from datetime import timedelta
 from decouple import config
 from dotenv import load_dotenv
+from celery.schedules import crontab
 load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -17,7 +18,20 @@ GOOGLE_REDIRECT_URI = config("GOOGLE_REDIRECT_URI")
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR / "templates"
 
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
 
+CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_ENABLE_UTC = False
+
+
+
+CELERY_BEAT_SCHEDULE = {
+    "print-every-minute": {
+        "task": "app.tasks.print_hello",
+        "schedule": crontab(minute="*"),  # каждую минуту
+    },
+}
 
 
 ALLOWED_HOSTS = ['*']
@@ -177,6 +191,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "mavlidinasanuulu@gmail.com"
+EMAIL_HOST_PASSWORD = "dojc jrsm xvie wgle "
+
 
 
 REDIS_HOST = config("REDIS_HOST", "localhost")
