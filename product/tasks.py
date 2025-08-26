@@ -18,8 +18,8 @@ def send_welcome_email(to_email):
     send_mail(
         "Добро пожаловать!",
         "Спасибо за регистрацию на нашем сайте 🎉",
-        "your_email@gmail.com",   # от кого
-        [to_email],               # кому
+        "your_email@gmail.com",   
+        [to_email],              
         fail_silently=False,
     )
 

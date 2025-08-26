@@ -6,10 +6,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone
 from datetime import timedelta
 from oauth2_provider.models import Application, AccessToken, RefreshToken as OAuthRefreshToken
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .serializers import RegisterSerializer, ConfirmSerializer, LoginSerializer
 from .redis_client import redis_instance
@@ -17,8 +18,24 @@ from .OAuth import get_google_user_info_by_code
 
 User = get_user_model()
 
+
+def send_welcome_email(user_email):
+    subject = "Добро пожаловать!"
+    message = "Спасибо за регистрацию. Мы рады видеть вас!"
+    from_email = settings.DEFAULT_FROM_EMAIL
+    recipient_list = [user_email]
+
+    try:
+        send_mail(subject, message, from_email, recipient_list)
+        return True
+    except Exception as e:
+        print(f"Ошибка отправки письма: {e}")
+        return False
+
+
 def generate_code(length=6):
     return "".join([str(random.randint(0, 9)) for _ in range(length)])
+
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -29,9 +46,17 @@ class RegisterView(APIView):
             user = serializer.save()
             code = generate_code()
             redis_instance.setex(f"confirm:{user.email}", 300, code)
-            print(f"Confirmation code for {user.email}: {code}")  # Для теста, отправку email можно подключить
-            return Response({"message": "Регистрация успешна. Проверьте email и подтвердите код."}, status=201)
+
+            # Отправляем email пользователю
+            send_welcome_email(user.email)
+
+            print(f"Confirmation code for {user.email}: {code}")  # Для теста
+            return Response(
+                {"message": "Регистрация успешна. Проверьте email и подтвердите код."},
+                status=201
+            )
         return Response(serializer.errors, status=400)
+
 
 class ConfirmView(APIView):
     permission_classes = [AllowAny]
@@ -53,6 +78,7 @@ class ConfirmView(APIView):
             return Response({"message": "Пользователь подтверждён. Теперь можно войти."})
         return Response(serializer.errors, status=400)
 
+
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -73,8 +99,10 @@ class LoginView(APIView):
             return Response({"token": token.key})
         return Response(serializer.errors, status=400)
 
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     pass  # можно использовать свой serializer если нужно
+
 
 class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
